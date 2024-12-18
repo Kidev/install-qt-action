@@ -121,6 +121,41 @@ const locateQtArchDir = (installDir) => {
         return qtArchDirs[0];
     }
 };
+const locateQtWasmHostArchDir = (installDir, hostType, target, version) => {
+    // For WASM in all_os mode, use the host builder directory
+    if (hostType === "all_os" && target === "wasm") {
+        const versionDir = path.join(installDir, version);
+        switch (process.platform) {
+            case "win32": {
+                // Find mingw directories
+                const mingwPattern = /^win\d+_mingw\d+$/;
+                const mingwArches = glob
+                    .sync(`${versionDir}/*/`)
+                    .map((dir) => path.basename(dir))
+                    .filter((dir) => mingwPattern.test(dir))
+                    .sort((a, b) => {
+                    var _a, _b, _c, _d;
+                    const [aBits, aVer] = (_b = (_a = a
+                        .match(/win(\d+)_mingw(\d+)/)) === null || _a === void 0 ? void 0 : _a.slice(1).map(Number)) !== null && _b !== void 0 ? _b : [0, 0];
+                    const [bBits, bVer] = (_d = (_c = b
+                        .match(/win(\d+)_mingw(\d+)/)) === null || _c === void 0 ? void 0 : _c.slice(1).map(Number)) !== null && _d !== void 0 ? _d : [0, 0];
+                    if (aBits !== bBits)
+                        return bBits - aBits;
+                    return bVer - aVer;
+                });
+                if (!mingwArches.length) {
+                    throw Error(`Failed to locate a MinGW directory for WASM host in ${versionDir}`);
+                }
+                return path.join(versionDir, mingwArches[0]);
+            }
+            case "darwin":
+                return path.join(versionDir, "clang_64");
+            default:
+                return path.join(versionDir, compareVersions(version, ">=", "6.7.0") ? "linux_gcc_64" : "gcc_64");
+        }
+    }
+    return locateQtArchDir(installDir);
+};
 const isAutodesktopSupported = () => __awaiter(void 0, void 0, void 0, function* () {
     const rawOutput = yield getPythonOutput("aqt", ["version"]);
     const match = rawOutput.match(/aqtinstall\(aqt\)\s+v(\d+\.\d+\.\d+)/);
@@ -423,7 +458,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     // Set environment variables/outputs for binaries
     if (inputs.isInstallQtBinaries) {
-        const qtPath = locateQtArchDir(inputs.dir);
+        const qtPath = locateQtWasmHostArchDir(inputs.dir, inputs.host, inputs.target, inputs.version);
         // Set outputs
         core.setOutput("qtPath", qtPath);
         // Set env variables
