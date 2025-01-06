@@ -3,7 +3,7 @@
 > [!CAUTION]
 > This whole repository is used for testing and to push PRs  
 > **It is not guaranteed to work or to be stable**  
-> Only the version `v4.2.0` is guaranteed stable right now 
+> Only the version `v4.2.0` is guaranteed stable right now  
 > Use other versions at your own risk
 
 > [!NOTE]
