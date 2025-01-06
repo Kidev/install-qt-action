@@ -56,6 +56,7 @@ const pythonCommand = (command: string, args: readonly string[]): string => {
   const python = process.platform === "win32" ? "python" : "python3";
   return `${python} -m ${command} ${args.join(" ")}`;
 };
+
 const execPython = async (command: string, args: readonly string[]): Promise<number> => {
   return exec(pythonCommand(command, args));
 };
@@ -185,6 +186,10 @@ class Inputs {
   readonly aqtVersion: string;
   readonly py7zrVersion: string;
 
+  readonly useCommercial: boolean;
+  readonly user: string;
+  readonly password: string;
+
   constructor() {
     const host = core.getInput("host");
     // Set host automatically if omitted
@@ -291,6 +296,10 @@ class Inputs {
 
     this.py7zrVersion = core.getInput("py7zrversion");
 
+    this.useCommercial = Inputs.getBoolInput("use-commercial");
+    this.user = core.getInput("user");
+    this.password = core.getInput("password");
+
     this.src = Inputs.getBoolInput("source");
     this.srcArchives = Inputs.getStringArrayInput("src-archives");
 
@@ -316,6 +325,7 @@ class Inputs {
         this.py7zrVersion,
         this.aqtSource,
         this.aqtVersion,
+        this.useCommercial ? "commercial" : "",
       ],
       this.modules,
       this.archives,
@@ -435,19 +445,33 @@ const run = async (): Promise<void> => {
 
     // Install Qt
     if (inputs.isInstallQtBinaries) {
-      const qtArgs = [
-        inputs.host,
-        inputs.target,
-        inputs.version,
-        ...(inputs.arch ? [inputs.arch] : []),
-        ...autodesktop,
-        ...["--outputdir", inputs.dir],
-        ...flaggedList("--modules", inputs.modules),
-        ...flaggedList("--archives", inputs.archives),
-        ...inputs.extra,
-      ];
-
-      await execPython("aqt install-qt", qtArgs);
+      if (inputs.useCommercial && inputs.user && inputs.password) {
+        const qtArgs = [
+          "install-qt-commercial",
+          inputs.target,
+          ...(inputs.arch ? [inputs.arch] : []),
+          inputs.version,
+          ...["--outputdir", inputs.dir],
+          ...["--user", inputs.user],
+          ...["--password", inputs.password],
+          ...inputs.extra,
+        ];
+        await execPython("aqt", qtArgs);
+      } else {
+        const qtArgs = [
+          "install-qt",
+          inputs.host,
+          inputs.target,
+          inputs.version,
+          ...(inputs.arch ? [inputs.arch] : []),
+          ...autodesktop,
+          ...["--outputdir", inputs.dir],
+          ...flaggedList("--modules", inputs.modules),
+          ...flaggedList("--archives", inputs.archives),
+          ...inputs.extra,
+        ];
+        await execPython("aqt", qtArgs);
+      }
     }
 
     const installSrcDocExamples = async (

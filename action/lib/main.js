@@ -212,14 +212,6 @@ class Inputs {
                     this.arch = "android_armv7";
                 }
             }
-            else if (this.target === "wasm") {
-                if (compareVersions(this.version, ">=", "6.0.0")) {
-                    this.arch = "wasm_singlethread";
-                }
-                else {
-                    this.arch = "wasm_32";
-                }
-            }
             else if (this.host === "windows") {
                 if (compareVersions(this.version, ">=", "6.8.0")) {
                     this.arch = "win64_msvc2022_64";
@@ -266,6 +258,9 @@ class Inputs {
         this.aqtSource = core.getInput("aqtsource");
         this.aqtVersion = core.getInput("aqtversion");
         this.py7zrVersion = core.getInput("py7zrversion");
+        this.useCommercial = Inputs.getBoolInput("use-commercial");
+        this.user = core.getInput("user");
+        this.password = core.getInput("password");
         this.src = Inputs.getBoolInput("source");
         this.srcArchives = Inputs.getStringArrayInput("src-archives");
         this.doc = Inputs.getBoolInput("documentation");
@@ -288,6 +283,7 @@ class Inputs {
                 this.py7zrVersion,
                 this.aqtSource,
                 this.aqtVersion,
+                this.useCommercial ? "commercial" : "",
             ],
             this.modules,
             this.archives,
@@ -400,18 +396,34 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         const autodesktop = (yield isAutodesktopSupported()) ? ["--autodesktop"] : [];
         // Install Qt
         if (inputs.isInstallQtBinaries) {
-            const qtArgs = [
-                inputs.host,
-                inputs.target,
-                inputs.version,
-                ...(inputs.arch ? [inputs.arch] : []),
-                ...autodesktop,
-                ...["--outputdir", inputs.dir],
-                ...flaggedList("--modules", inputs.modules),
-                ...flaggedList("--archives", inputs.archives),
-                ...inputs.extra,
-            ];
-            yield execPython("aqt install-qt", qtArgs);
+            if (inputs.useCommercial && inputs.user && inputs.password) {
+                const qtArgs = [
+                    "install-qt-commercial",
+                    inputs.target,
+                    ...(inputs.arch ? [inputs.arch] : []),
+                    inputs.version,
+                    ...["--outputdir", inputs.dir],
+                    ...["--user", inputs.user],
+                    ...["--password", inputs.password],
+                    ...inputs.extra,
+                ];
+                yield execPython("aqt", qtArgs);
+            }
+            else {
+                const qtArgs = [
+                    "install-qt",
+                    inputs.host,
+                    inputs.target,
+                    inputs.version,
+                    ...(inputs.arch ? [inputs.arch] : []),
+                    ...autodesktop,
+                    ...["--outputdir", inputs.dir],
+                    ...flaggedList("--modules", inputs.modules),
+                    ...flaggedList("--archives", inputs.archives),
+                    ...inputs.extra,
+                ];
+                yield execPython("aqt", qtArgs);
+            }
         }
         const installSrcDocExamples = (flavor, archives, modules) => __awaiter(void 0, void 0, void 0, function* () {
             const qtArgs = [
