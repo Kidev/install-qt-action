@@ -1,11 +1,16 @@
 # `install-qt-action`
 
+> [!NOTE]
+> This is a fork of the original version. It has additional features:
+> - Can install any verison of Qt, can install WASM and extensions
+> - Can install commercial versions of Qt provided you own a license
+ 
 Installing Qt on Github Actions workflows manually is the worst.
 
 You know what's easier than dealing with that? Just using this:
 ```yml
     - name: Install Qt
-      uses: jurplel/install-qt-action@v4
+      uses: Kidev/install-qt-action@v4.3.0
 ```
 
 All done.
