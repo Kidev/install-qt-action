@@ -79,7 +79,7 @@ When possible, access your Qt directory through the `QT_ROOT_DIR` environment va
 
 Default: `$RUNNER_WORKSPACE` (this is one folder above the starting directory)
 
-### `use-commercial` (since `v.4.3.0`)
+### `use-commercial` (since `v4.3.0`)
 Whether or not to use `aqtinstall` to install Qt using its official online installer enabling the commercial versions for those owning a license.
 For this to work, you need to also set `aqtsource` to `git+https://github.com/Kidev/aqtinstall.git@install_qt_commercial`.
 The parameter `host` will then be ignored, as you can only install commercial Qt versions on the OS running the installer.
