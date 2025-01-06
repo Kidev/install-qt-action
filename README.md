@@ -83,6 +83,20 @@ Default: `$RUNNER_WORKSPACE` (this is one folder above the starting directory)
 Whether or not to use `aqtinstall` to install Qt using its official online installer enabling the commercial versions for those owning a license.
 For this to work, you need to also set `aqtsource` to `git+https://github.com/Kidev/aqtinstall.git@install_qt_commercial`.
 The parameter `host` will then be ignored, as you can only install commercial Qt versions on the OS running the installer.
+Example:
+```yml
+    - name: Install Qt
+      uses: Kidev/install-qt-action@v4.3.0
+      with:
+        version: '5.15.3'
+        host: 'windows'
+        target: 'desktop'
+        arch: 'win64_msvc2019_64'
+        aqtsource: 'git+https://github.com/Kidev/aqtinstall.git@install_qt_commercial'
+        use-commercial: true
+        user: 'kidev'
+        password: '****'
+```
 
 Default: `false`
 
