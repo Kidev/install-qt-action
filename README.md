@@ -74,6 +74,17 @@ When possible, access your Qt directory through the `QT_ROOT_DIR` environment va
 
 Default: `$RUNNER_WORKSPACE` (this is one folder above the starting directory)
 
+### `use-commercial`
+Whether or not to use `aqtinstall` to install Qt using its official online installer enabling the commercial versions for those owning a license.
+
+Default: `false`
+
+#### `user`
+If `use-commercial` is true, will use this username/email to authenticate with Qt servers
+
+#### `password`
+If `use-commercial` is true, will use this password to authenticate with Qt servers
+
 ### `install-deps`
 Whether or not to automatically install Qt dependencies on Linux through `apt`.
 
