@@ -4,7 +4,13 @@
 > This is a fork of the original version. It has additional features:
 > - Can install any verison of Qt, can install WASM and extensions
 > - Can install commercial versions of Qt provided you own a license
- 
+
+> [!CAUTION]
+> This whole repository is used for testing and to push PRs
+> It is not guaranteed to work or to be stable.
+> Only the version `v4.2.0` is guarenteed stable right now.
+> Use other versions are your own risk
+
 Installing Qt on Github Actions workflows manually is the worst.
 
 You know what's easier than dealing with that? Just using this:
