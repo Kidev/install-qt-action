@@ -97,12 +97,11 @@ Example:
       uses: Kidev/install-qt-action@v4.3.0
       with:
         version: '5.15.3'
-        host: 'windows'
         target: 'desktop'
         arch: 'win64_msvc2019_64'
         aqtsource: 'git+https://github.com/Kidev/aqtinstall.git@install_qt_commercial'
         use-commercial: true
-        user: 'kidev'
+        user: '****@gmail.com'
         password: '****'
 ```
 
