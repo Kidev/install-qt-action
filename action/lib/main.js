@@ -405,6 +405,7 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
                     ...["--outputdir", inputs.dir],
                     ...["--user", inputs.user],
                     ...["--password", inputs.password],
+                    ...flaggedList("--modules", inputs.modules),
                     ...inputs.extra,
                 ];
                 yield execPython("aqt", qtArgs);

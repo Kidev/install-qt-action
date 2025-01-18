@@ -454,6 +454,7 @@ const run = async (): Promise<void> => {
           ...["--outputdir", inputs.dir],
           ...["--user", inputs.user],
           ...["--password", inputs.password],
+          ...flaggedList("--modules", inputs.modules),
           ...inputs.extra,
         ];
         await execPython("aqt", qtArgs);
