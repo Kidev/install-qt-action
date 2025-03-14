@@ -3,6 +3,7 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as process from "process";
+import * as ini from "ini";
 
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
@@ -151,6 +152,44 @@ const isAutodesktopSupported = async (): Promise<boolean> => {
   const rawOutput = await getPythonOutput("aqt", ["version"]);
   const match = rawOutput.match(/aqtinstall\(aqt\)\s+v(\d+\.\d+\.\d+)/);
   return match ? compareVersions(match[1], ">=", "3.0.0") : false;
+};
+
+type IniSection = Record<string, string | undefined>;
+
+const updateSettingsIni = (filePath: string): void => {
+  try {
+    const content: string = fs.readFileSync(filePath, "utf8");
+    console.log("File content before update:");
+    console.log(content);
+
+    const config = ini.parse(content) as Record<string, IniSection | undefined>;
+
+    if (!config.qtofficial) {
+      console.error("Error: [qtofficial] section not found in the INI file");
+      return;
+    }
+
+    const qtofficialSection = config.qtofficial;
+
+    const currentValue = qtofficialSection.check_packages;
+    console.log(`Current check_packages value: ${currentValue ?? "not set"}`);
+
+    qtofficialSection.check_packages = "No";
+
+    const updatedContent: string = ini.stringify(config);
+
+    fs.writeFileSync(filePath, updatedContent, "utf8");
+    console.log("File content after update:");
+    console.log(updatedContent);
+
+    console.log("Settings.ini updated successfully.");
+  } catch (error: unknown) {
+    if (error instanceof Error) {
+      console.error("Error updating settings.ini file:", error.message);
+    } else {
+      console.error("Unknown error updating settings.ini file");
+    }
+  }
 };
 
 class Inputs {
@@ -446,6 +485,8 @@ const run = async (): Promise<void> => {
     // Install Qt
     if (inputs.isInstallQtBinaries) {
       if (inputs.useOfficial && inputs.email && inputs.pw) {
+        const settingsPath: string = path.join("aqt", "settings.ini");
+        updateSettingsIni(settingsPath);
         const qtArgs = [
           "install-qt-official",
           inputs.target,

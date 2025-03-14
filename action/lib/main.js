@@ -37,6 +37,7 @@ const fs = __importStar(require("fs"));
 const os = __importStar(require("os"));
 const path = __importStar(require("path"));
 const process = __importStar(require("process"));
+const ini = __importStar(require("ini"));
 const cache = __importStar(require("@actions/cache"));
 const core = __importStar(require("@actions/core"));
 const exec_1 = require("@actions/exec");
@@ -161,6 +162,35 @@ const isAutodesktopSupported = () => __awaiter(void 0, void 0, void 0, function*
     const match = rawOutput.match(/aqtinstall\(aqt\)\s+v(\d+\.\d+\.\d+)/);
     return match ? compareVersions(match[1], ">=", "3.0.0") : false;
 });
+const updateSettingsIni = (filePath) => {
+    try {
+        const content = fs.readFileSync(filePath, "utf8");
+        console.log("File content before update:");
+        console.log(content);
+        const config = ini.parse(content);
+        if (!config.qtofficial) {
+            console.error("Error: [qtofficial] section not found in the INI file");
+            return;
+        }
+        const qtofficialSection = config.qtofficial;
+        const currentValue = qtofficialSection.check_packages;
+        console.log(`Current check_packages value: ${currentValue !== null && currentValue !== void 0 ? currentValue : "not set"}`);
+        qtofficialSection.check_packages = "No";
+        const updatedContent = ini.stringify(config);
+        fs.writeFileSync(filePath, updatedContent, "utf8");
+        console.log("File content after update:");
+        console.log(updatedContent);
+        console.log("Settings.ini updated successfully.");
+    }
+    catch (error) {
+        if (error instanceof Error) {
+            console.error("Error updating settings.ini file:", error.message);
+        }
+        else {
+            console.error("Unknown error updating settings.ini file");
+        }
+    }
+};
 class Inputs {
     constructor() {
         const host = core.getInput("host");
@@ -397,6 +427,8 @@ const run = () => __awaiter(void 0, void 0, void 0, function* () {
         // Install Qt
         if (inputs.isInstallQtBinaries) {
             if (inputs.useOfficial && inputs.email && inputs.pw) {
+                const settingsPath = path.join("aqt", "settings.ini");
+                updateSettingsIni(settingsPath);
                 const qtArgs = [
                     "install-qt-official",
                     inputs.target,
