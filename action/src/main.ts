@@ -3,7 +3,6 @@ import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
 import * as process from "process";
-import * as ini from "ini";
 
 import * as cache from "@actions/cache";
 import * as core from "@actions/core";
@@ -73,7 +72,7 @@ const flaggedList = (flag: string, listArgs: readonly string[]): string[] => {
   return listArgs.length ? [flag, ...listArgs] : [];
 };
 
-const locateQtArchDir = (installDir: string): string => {
+const locateQtArchDir = (installDir: string): [string, boolean] => {
   // For 6.4.2/gcc, qmake is at 'installDir/6.4.2/gcc_64/bin/qmake'.
   // This makes a list of all the viable arch directories that contain a qmake file.
   const qtArchDirs = glob
@@ -86,110 +85,25 @@ const locateQtArchDir = (installDir: string): string => {
   const requiresParallelDesktop = qtArchDirs.filter((archPath) => {
     const archDir = path.basename(archPath);
     const versionDir = path.basename(path.join(archPath, ".."));
-    return versionDir.match(/^6\.\d+\.\d+$/) && archDir.match(/^(android*|ios|wasm*|msvc*_arm64)$/);
+    return (
+      versionDir.match(/^6\.\d+\.\d+$/) && archDir.match(/^(android.*|ios|wasm.*|msvc.*_arm64)$/)
+    );
   });
   if (requiresParallelDesktop.length) {
     // NOTE: if multiple mobile/wasm installations coexist, this may not select the desired directory
-    return requiresParallelDesktop[0];
+    return [requiresParallelDesktop[0], true];
   } else if (!qtArchDirs.length) {
     throw Error(`Failed to locate a Qt installation directory in  ${installDir}`);
   } else {
     // NOTE: if multiple Qt installations exist, this may not select the desired directory
-    return qtArchDirs[0];
+    return [qtArchDirs[0], false];
   }
-};
-
-const locateQtWasmHostArchDir = (
-  installDir: string,
-  hostType: "windows" | "mac" | "linux" | "all_os",
-  target: "desktop" | "android" | "ios" | "wasm",
-  version: string
-): string => {
-  // For WASM in all_os mode, use the host builder directory
-  if (hostType === "all_os" && target === "wasm") {
-    const versionDir = path.join(installDir, version);
-
-    switch (process.platform) {
-      case "win32": {
-        // Find mingw directories
-        const mingwPattern = /^win\d+_mingw\d+$/;
-        const mingwArches = glob
-          .sync(`${versionDir}/*/`)
-          .map((dir) => path.basename(dir))
-          .filter((dir) => mingwPattern.test(dir))
-          .sort((a, b) => {
-            const [aBits, aVer] = a
-              .match(/win(\d+)_mingw(\d+)/)
-              ?.slice(1)
-              .map(Number) ?? [0, 0];
-            const [bBits, bVer] = b
-              .match(/win(\d+)_mingw(\d+)/)
-              ?.slice(1)
-              .map(Number) ?? [0, 0];
-            if (aBits !== bBits) return bBits - aBits;
-            return bVer - aVer;
-          });
-
-        if (!mingwArches.length) {
-          throw Error(`Failed to locate a MinGW directory for WASM host in ${versionDir}`);
-        }
-        return path.join(versionDir, mingwArches[0]);
-      }
-      case "darwin":
-        return path.join(versionDir, "clang_64");
-      default:
-        return path.join(
-          versionDir,
-          compareVersions(version, ">=", "6.7.0") ? "linux_gcc_64" : "gcc_64"
-        );
-    }
-  }
-
-  return locateQtArchDir(installDir);
 };
 
 const isAutodesktopSupported = async (): Promise<boolean> => {
   const rawOutput = await getPythonOutput("aqt", ["version"]);
   const match = rawOutput.match(/aqtinstall\(aqt\)\s+v(\d+\.\d+\.\d+)/);
   return match ? compareVersions(match[1], ">=", "3.0.0") : false;
-};
-
-type IniSection = Record<string, string | undefined>;
-
-const updateSettingsIni = (filePath: string): void => {
-  try {
-    const content: string = fs.readFileSync(filePath, "utf8");
-    console.log("File content before update:");
-    console.log(content);
-
-    const config = ini.parse(content) as Record<string, IniSection | undefined>;
-
-    if (!config.qtofficial) {
-      console.error("Error: [qtofficial] section not found in the INI file");
-      return;
-    }
-
-    const qtofficialSection = config.qtofficial;
-
-    const currentValue = qtofficialSection.check_packages;
-    console.log(`Current check_packages value: ${currentValue ?? "not set"}`);
-
-    qtofficialSection.check_packages = "No";
-
-    const updatedContent: string = ini.stringify(config);
-
-    fs.writeFileSync(filePath, updatedContent, "utf8");
-    console.log("File content after update:");
-    console.log(updatedContent);
-
-    console.log("Settings.ini updated successfully.");
-  } catch (error: unknown) {
-    if (error instanceof Error) {
-      console.error("Error updating settings.ini file:", error.message);
-    } else {
-      console.error("Unknown error updating settings.ini file");
-    }
-  }
 };
 
 class Inputs {
@@ -485,8 +399,6 @@ const run = async (): Promise<void> => {
     // Install Qt
     if (inputs.isInstallQtBinaries) {
       if (inputs.useOfficial && inputs.email && inputs.pw) {
-        const settingsPath: string = path.join("aqt", "settings.ini");
-        updateSettingsIni(settingsPath);
         const qtArgs = [
           "install-qt-official",
           inputs.target,
@@ -570,7 +482,7 @@ const run = async (): Promise<void> => {
   }
   // Set environment variables/outputs for binaries
   if (inputs.isInstallQtBinaries) {
-    const qtPath = locateQtWasmHostArchDir(inputs.dir, inputs.host, inputs.target, inputs.version);
+    const [qtPath, requiresParallelDesktop] = locateQtArchDir(inputs.dir);
     // Set outputs
     core.setOutput("qtPath", qtPath);
 
@@ -589,6 +501,15 @@ const run = async (): Promise<void> => {
       core.exportVariable("QT_ROOT_DIR", qtPath);
       core.exportVariable("QT_PLUGIN_PATH", path.resolve(qtPath, "plugins"));
       core.exportVariable("QML2_IMPORT_PATH", path.resolve(qtPath, "qml"));
+      if (requiresParallelDesktop) {
+        const hostPrefix = await fs.promises
+          .readFile(path.join(qtPath, "bin", "target_qt.conf"), "utf8")
+          .then((data) => data.match(/^HostPrefix=(.*)$/m)?.[1].trim() ?? "")
+          .catch(() => "");
+        if (hostPrefix) {
+          core.exportVariable("QT_HOST_PATH", path.resolve(qtPath, "bin", hostPrefix));
+        }
+      }
       core.addPath(path.resolve(qtPath, "bin"));
     }
   }
