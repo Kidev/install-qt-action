@@ -37,7 +37,7 @@ The desired version of Qt to install.
 
 You can also pass in SimpleSpec version numbers, for example `6.2.*`.
 
-Default: `6.8.1` (Last Qt 6 LTS)
+Default: `6.8.3` (Last Qt 6 LTS)
 
 **Please note that for Linux builds, Qt 6+ requires Ubuntu 20.04 or later.**
 
