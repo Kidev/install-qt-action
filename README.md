@@ -1,7 +1,7 @@
 # `install-qt-action`
 
 > [!CAUTION]
-> This whole repository is used for testing and to push PRs  
+> This whole repository is used for testing and to push [THIS PR](https://github.com/jurplel/install-qt-action/pull/272)  
 > **It is not guaranteed to work or to be stable**  
 > Only the version `v4.5.0` is *guaranteed* stable right now  
 > Use other versions at your own risk
