@@ -3,8 +3,7 @@
 > [!CAUTION]
 > This whole repository is used for testing and to push PRs  
 > **It is not guaranteed to work or to be stable**  
-> Only the version `v4.2.0` is *guaranteed* stable right now  
-> The version `v4.4.2` *should* work as well  
+> Only the version `v4.5.0` is *guaranteed* stable right now  
 > Use other versions at your own risk
 
 > [!NOTE]
@@ -19,7 +18,7 @@ Installing Qt on Github Actions workflows manually is the worst.
 You know what's easier than dealing with that? Just using this:
 ```yml
     - name: Install Qt
-      uses: Kidev/install-qt-action@v4.4.2
+      uses: Kidev/install-qt-action@v4.5.0
 ```
 
 All done.
