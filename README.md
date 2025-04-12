@@ -10,6 +10,8 @@
 > This is a fork of the original version. It has additional features:
 > - Can install any verison of Qt, can install WASM and extensions
 > - Can install commercial versions of Qt provided you own a license
+> - Have more sane and up to date defaults
+> - Uses [action/cache@v4](https://github.com/marketplace/actions/cache) as required by [this Github announcement](https://github.com/actions/cache/discussions/1510)
 
 ---
 
