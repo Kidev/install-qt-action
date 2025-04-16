@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "@actions/cache": "^4.0.3"
+  }
+}
