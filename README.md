@@ -1,10 +1,9 @@
 # `install-qt-action`
 
 > [!CAUTION]
-> This whole repository is used for testing and to push [THIS PR](https://github.com/jurplel/install-qt-action/pull/272)  
-> **It is not guaranteed to work or to be stable**  
-> Only the version `v4.6.0` is *guaranteed* stable right now  
-> Use other versions at your own risk
+> [THE PR](https://github.com/jurplel/install-qt-action/pull/272) making this repo relevant was merged
+> You should probably [use the official version now](https://github.com/jurplel/install-qt-action)
+> Use at your own risk
 
 > [!NOTE]
 > This is a fork of the original version. It has additional features:
