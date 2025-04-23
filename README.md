@@ -2,7 +2,7 @@
 
 > [!CAUTION]
 > [THE PR](https://github.com/jurplel/install-qt-action/pull/272) making this repo relevant was merged  
-> You should probably [use the official version now](https://github.com/jurplel/install-qt-action)
+> You should probably [use the official version now](https://github.com/jurplel/install-qt-action)  
 > Use at your own risk
 
 > [!NOTE]
