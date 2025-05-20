@@ -1,6 +1,6 @@
-name: Install Qt
+name: Install Qt (edited)
 description: Install Qt on your Github Actions workflows with just one simple action
-author: jurplel
+author: jurplel & kidev
 branding:
   icon: package
   color: green
@@ -101,7 +101,7 @@ runs:
       architecture: ${{ runner.os == 'Windows' && runner.arch == 'ARM64' && 'x64' || '' }}
 
   - name: Setup and run aqtinstall
-    uses: ./action
+    uses: Kidev/install-qt-action/action@v5
     with:
       dir: ${{ inputs.dir }}
       version: ${{ inputs.version }}
